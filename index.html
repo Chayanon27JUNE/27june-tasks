@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>27JUNE Tasks</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#ffffff; --ink:#1c1c1e; --muted:#8a8a8e;
+    --line:#e8e6e1; --accent:#e8590c; --accent-soft:#fff0e6;
+    --ok:#2f9e44; --warn:#e8590c; --danger:#d6336c; --chipbg:#efede8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#111318; --card:#1b1e25; --ink:#f0efec; --muted:#8f929b;
+      --line:#2a2e37; --accent:#ff7d33; --accent-soft:#2b2118;
+      --chipbg:#232730;
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",Sarabun,sans-serif;
+    font-size:16px; line-height:1.45;
+    padding-bottom:90px;
+  }
+  header{
+    position:sticky; top:0; z-index:10; background:var(--bg);
+    padding:16px 16px 8px; border-bottom:1px solid var(--line);
+  }
+  h1{font-size:20px; margin:0; letter-spacing:.2px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted); font-size:13px; margin-top:2px}
+  .chips{display:flex; gap:8px; overflow-x:auto; padding:10px 0 8px; scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto; padding:6px 14px; border-radius:999px; border:1px solid var(--line);
+    background:var(--chipbg); color:var(--ink); font-size:14px; cursor:pointer; user-select:none;
+    white-space:nowrap;
+  }
+  .chip.active{background:var(--accent); border-color:var(--accent); color:#fff}
+  main{padding:12px 16px}
+  .group-title{
+    font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.6px; margin:18px 4px 8px;
+  }
+  .group-title.danger{color:var(--danger)}
+  .group-title.today{color:var(--accent)}
+  .task{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px 14px; margin-bottom:8px; display:flex; gap:12px; align-items:flex-start;
+  }
+  .task.done .title{text-decoration:line-through; color:var(--muted)}
+  .box{
+    flex:0 0 auto; width:24px; height:24px; border-radius:8px; border:2px solid var(--muted);
+    margin-top:2px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:#fff;
+  }
+  .task.done .box{background:var(--ok); border-color:var(--ok)}
+  .body{flex:1; min-width:0}
+  .title{font-size:16px; font-weight:600; word-wrap:break-word}
+  .meta{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; align-items:center}
+  .tag{
+    font-size:12px; padding:2px 9px; border-radius:999px; background:var(--chipbg);
+    color:var(--muted); border:1px solid var(--line);
+  }
+  .tag.cat{color:var(--accent); background:var(--accent-soft); border-color:transparent; font-weight:600}
+  .tag.due-over{color:#fff; background:var(--danger); border-color:transparent; font-weight:600}
+  .tag.due-today{color:#fff; background:var(--accent); border-color:transparent; font-weight:600}
+  .note{font-size:13px; color:var(--muted); margin-top:4px; white-space:pre-wrap}
+  .del{flex:0 0 auto; border:none; background:none; color:var(--muted); font-size:18px; cursor:pointer; padding:2px}
+  .empty{color:var(--muted); text-align:center; padding:40px 20px; font-size:14px}
+  /* FAB + form */
+  .fab{
+    position:fixed; right:18px; bottom:18px; width:56px; height:56px; border-radius:50%;
+    background:var(--accent); color:#fff; font-size:28px; border:none; cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.25); z-index:20; line-height:1;
+  }
+  .sheet-bg{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:30; display:none}
+  .sheet-bg.open{display:block}
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:31; background:var(--card);
+    border-radius:18px 18px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    transform:translateY(105%); transition:transform .22s ease;
+  }
+  .sheet.open{transform:translateY(0)}
+  .sheet h2{font-size:17px; margin:0 0 12px}
+  .sheet label{font-size:13px; color:var(--muted); display:block; margin:10px 0 4px}
+  .sheet input, .sheet select, .sheet textarea{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-size:16px; font-family:inherit;
+  }
+  .sheet textarea{resize:none; height:64px}
+  .row2{display:flex; gap:10px}
+  .row2>div{flex:1}
+  .btn{
+    width:100%; margin-top:16px; padding:13px; border-radius:12px; border:none;
+    background:var(--accent); color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+  }
+  .toolbar{display:flex; gap:8px; margin-top:14px}
+  .toolbar button{
+    flex:1; padding:10px; border-radius:10px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink); font-size:13px; cursor:pointer;
+  }
+  .toast{
+    position:fixed; left:50%; bottom:100px; transform:translateX(-50%);
+    background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px;
+    font-size:14px; opacity:0; transition:opacity .25s; z-index:50; pointer-events:none;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>27<span>JUNE</span> Tasks</h1>
+  <div class="sub" id="subtitle"></div>
+  <div class="chips" id="chips"></div>
+</header>
+<main id="list"></main>
+
+<button class="fab" id="fab" aria-label="เพิ่มงาน">+</button>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet">
+  <h2>เพิ่มงานใหม่</h2>
+  <label>ชื่องาน</label>
+  <input id="fTitle" placeholder="เช่น ตามใบเสนอราคาลูกค้า A">
+  <label>หมวด</label>
+  <select id="fCat"></select>
+  <div class="row2">
+    <div><label>ครบกำหนด</label><input type="date" id="fDue"></div>
+    <div><label>ตามอีกทีวันที่ (ถ้ามี)</label><input type="date" id="fFollow"></div>
+  </div>
+  <label>โน้ต</label>
+  <textarea id="fNote" placeholder="รายละเอียด / รออะไรจากใคร"></textarea>
+  <button class="btn" id="fSave">บันทึกงาน</button>
+  <div class="toolbar">
+    <button id="btnCopy">📋 คัดลอกสรุปส่งให้ Claude</button>
+    <button id="btnClearDone">🧹 ล้างงานที่เสร็จแล้ว</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- storage (กันพังเวลาเปิดใน preview ที่ไม่มี localStorage) ----------
+const store = (() => {
+  try { const t='__t'; localStorage.setItem(t,t); localStorage.removeItem(t); return localStorage; }
+  catch(e){ let m={}; return {getItem:k=>(k in m?m[k]:null), setItem:(k,v)=>{m[k]=String(v)}, removeItem:k=>{delete m[k]}}; }
+})();
+const KEY = 'june27_tasks_v1';
+
+// ---------- หมวดงาน ----------
+const CATS = [
+  {id:'deal',   name:'💼 ดีลลูกค้า'},
+  {id:'follow', name:'📞 ตามงาน'},
+  {id:'ship',   name:'🚚 ชิปปิ้ง'},
+  {id:'repair', name:'🔧 ซ่อมเครื่องมือ'},
+  {id:'present',name:'🖥️ พรีเซน'},
+  {id:'apply',  name:'📝 สมัคร/เอกสาร'},
+  {id:'deliver',name:'📦 ส่งงาน'},
+  {id:'other',  name:'🗂️ อื่นๆ'},
+];
+
+// ---------- งานตั้งต้น (จากไฟล์ 01-TASKS.md) ----------
+const SEED = [
+  {id:'s1', title:'นัดคุย handover กับพี่ติ๊ดตี่', cat:'other', due:'', follow:'', note:'ใช้เช็คลิสใน 90-HANDOVER.md', done:false},
+  {id:'s2', title:'รวบรวมลูกค้า/โปรเจกต์ที่กำลังทำอยู่', cat:'deal', due:'', follow:'', note:'เติมลง 20-PROJECTS.md', done:false},
+  {id:'s3', title:'เช็กบัญชี + รายการต้องจ่ายเดือนนี้', cat:'apply', due:'', follow:'', note:'เติมลง 10-FINANCE.md', done:false},
+];
+
+let tasks = load();
+let filter = 'all';
+
+function load(){
+  const raw = store.getItem(KEY);
+  if(raw){ try { return JSON.parse(raw); } catch(e){} }
+  return SEED.slice();
+}
+function save(){ store.setItem(KEY, JSON.stringify(tasks)); }
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDate(s){
+  if(!s) return '';
+  const [y,m,d]=s.split('-').map(Number);
+  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return d+' '+months[m-1];
+}
+function catName(id){ const c=CATS.find(c=>c.id===id); return c?c.name:id; }
+function uid(){ return 't'+Math.random().toString(36).slice(2,9); }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+// ---------- render ----------
+function render(){
+  const today = todayStr();
+  const thai = new Date().toLocaleDateString('th-TH',{weekday:'long', day:'numeric', month:'long'});
+  const openCount = tasks.filter(t=>!t.done).length;
+  $('subtitle').textContent = thai + ' · ค้าง ' + openCount + ' งาน';
+
+  // chips
+  const chipEl = $('chips'); chipEl.innerHTML='';
+  const allChip = mkChip('ทั้งหมด','all'); chipEl.appendChild(allChip);
+  CATS.forEach(c=>{
+    const n = tasks.filter(t=>!t.done && t.cat===c.id).length;
+    chipEl.appendChild(mkChip(c.name+(n?' '+n:''), c.id));
+  });
+
+  const list = $('list'); list.innerHTML='';
+  const vis = tasks.filter(t => filter==='all' || t.cat===filter);
+
+  const overdue = vis.filter(t=>!t.done && t.due && t.due < today);
+  const dueToday = vis.filter(t=>!t.done && ((t.due===today)||(t.follow===today && t.due!==today)));
+  const rest = vis.filter(t=>!t.done && !overdue.includes(t) && !dueToday.includes(t));
+  const done = vis.filter(t=>t.done);
+
+  addGroup(list,'⚠️ เกินกำหนด', overdue, 'danger');
+  addGroup(list,'🔥 วันนี้', dueToday, 'today');
+  addGroup(list,'📋 งานค้าง', rest, '');
+  addGroup(list,'✔️ เสร็จแล้ว', done, '');
+
+  if(!vis.length){
+    list.innerHTML = '<div class="empty">ยังไม่มีงานในหมวดนี้<br>กด + เพื่อเพิ่มงาน</div>';
+  }
+}
+function mkChip(label,val){
+  const el=document.createElement('div');
+  el.className='chip'+(filter===val?' active':'');
+  el.textContent=label;
+  el.onclick=()=>{filter=val; render();};
+  return el;
+}
+function addGroup(list,title,arr,cls){
+  if(!arr.length) return;
+  const h=document.createElement('div');
+  h.className='group-title '+cls; h.textContent=title+' ('+arr.length+')';
+  list.appendChild(h);
+  arr.forEach(t=>list.appendChild(taskEl(t)));
+}
+function taskEl(t){
+  const today = todayStr();
+  const el=document.createElement('div');
+  el.className='task'+(t.done?' done':'');
+  const dueTag = t.due ? (t.due<today && !t.done ? '<span class="tag due-over">เกิน '+fmtDate(t.due)+'</span>'
+                  : t.due===today && !t.done ? '<span class="tag due-today">วันนี้</span>'
+                  : '<span class="tag">📅 '+fmtDate(t.due)+'</span>') : '';
+  const followTag = t.follow ? '<span class="tag">🔁 ตาม '+fmtDate(t.follow)+'</span>' : '';
+  el.innerHTML =
+    '<div class="box">'+(t.done?'✓':'')+'</div>'+
+    '<div class="body"><div class="title"></div>'+
+    '<div class="meta"><span class="tag cat">'+catName(t.cat)+'</span>'+dueTag+followTag+'</div>'+
+    (t.note?'<div class="note"></div>':'')+
+    '</div><button class="del">×</button>';
+  el.querySelector('.title').textContent = t.title;
+  if(t.note) el.querySelector('.note').textContent = t.note;
+  el.querySelector('.box').onclick=()=>{ t.done=!t.done; save(); render(); };
+  el.querySelector('.del').onclick=()=>{ if(confirm('ลบงาน "'+t.title+'" ?')){ tasks=tasks.filter(x=>x.id!==t.id); save(); render(); } };
+  return el;
+}
+
+// ---------- sheet ----------
+const sheet=$('sheet'), bg=$('sheetBg');
+$('fab').onclick=()=>{ openSheet(); };
+bg.onclick=closeSheet;
+function openSheet(){
+  $('fCat').innerHTML = CATS.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  if(filter!=='all') $('fCat').value=filter;
+  sheet.classList.add('open'); bg.classList.add('open');
+}
+function closeSheet(){ sheet.classList.remove('open'); bg.classList.remove('open'); }
+$('fSave').onclick=()=>{
+  const title=$('fTitle').value.trim();
+  if(!title){ toast('ใส่ชื่องานก่อนครับ'); return; }
+  tasks.unshift({id:uid(), title, cat:$('fCat').value, due:$('fDue').value, follow:$('fFollow').value, note:$('fNote').value.trim(), done:false});
+  save();
+  $('fTitle').value=''; $('fDue').value=''; $('fFollow').value=''; $('fNote').value='';
+  closeSheet(); render(); toast('เพิ่มงานแล้ว ✓');
+};
+
+// ---------- tools ----------
+$('btnCopy').onclick=()=>{
+  const today=todayStr();
+  let out='สถานะงาน 27JUNE ('+new Date().toLocaleDateString('th-TH')+')\n';
+  CATS.forEach(c=>{
+    const arr=tasks.filter(t=>t.cat===c.id);
+    if(!arr.length) return;
+    out+='\n'+c.name+'\n';
+    arr.forEach(t=>{
+      out+=(t.done?'[x] ':'[ ] ')+t.title;
+      if(t.due) out+=' (กำหนด '+t.due+(t.due<today&&!t.done?' ⚠️เกิน':'')+')';
+      if(t.follow) out+=' (ตามอีกที '+t.follow+')';
+      if(t.note) out+=' — '+t.note;
+      out+='\n';
+    });
+  });
+  const doneCopy=()=>toast('คัดลอกแล้ว — เอาไปวางในแชท Claude ได้เลย');
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(out).then(doneCopy,()=>fallbackCopy(out,doneCopy)); }
+  else fallbackCopy(out,doneCopy);
+};
+function fallbackCopy(text,cb){
+  const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+  ta.select(); try{document.execCommand('copy'); cb();}catch(e){ toast('คัดลอกไม่สำเร็จ'); }
+  document.body.removeChild(ta);
+}
+$('btnClearDone').onclick=()=>{
+  const n=tasks.filter(t=>t.done).length;
+  if(!n){ toast('ไม่มีงานที่เสร็จแล้ว'); return; }
+  if(confirm('ลบงานที่เสร็จแล้ว '+n+' งาน?')){ tasks=tasks.filter(t=>!t.done); save(); render(); }
+};
+
+render();
+</script>
+</body>
+</html>
