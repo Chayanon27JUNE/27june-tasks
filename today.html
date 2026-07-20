@@ -54,8 +54,12 @@
   .colhead{
     position:absolute; top:0; height:34px; display:flex; align-items:center; justify-content:center;
     font-weight:800; font-size:14px; letter-spacing:1.5px; z-index:6; pointer-events:none;
-    width:33.333%; color:var(--ink); background:rgba(20,22,27,.82); backdrop-filter:blur(4px);
+    width:25%; color:var(--ink); background:rgba(20,22,27,.82); backdrop-filter:blur(4px);
     border-bottom:1px solid var(--line);
+  }
+  .inboxcol{
+    position:absolute; left:75%; right:0; top:0; bottom:0; pointer-events:none; z-index:2;
+    background:rgba(255,255,255,.09); border-left:2px dashed rgba(255,255,255,.35);
   }
   /* dividers */
   .divider{
@@ -68,7 +72,7 @@
   }
   /* cards */
   .tcard{
-    position:absolute; width:calc(33.333% - 14px); min-height:46px; z-index:10;
+    position:absolute; width:calc(25% - 12px); min-height:46px; z-index:10;
     background:var(--card); border:1px solid var(--line); border-left:4px solid var(--muted);
     border-radius:10px; padding:8px 26px 8px 8px; touch-action:none; cursor:grab;
     box-shadow:0 2px 8px rgba(0,0,0,.35);
@@ -148,11 +152,14 @@
     <div class="zone-label" id="lRed" style="background:var(--red-line)">ด่วนมากๆ 🔥</div>
     <div class="zone-label" id="lYellow" style="background:var(--yellow-line)">ด่วน ⚡</div>
     <div class="zone-label" id="lGreen" style="background:var(--green-line)">ไม่ด่วน 🌿</div>
-    <div class="colline" style="left:33.333%"></div>
-    <div class="colline" style="left:66.666%"></div>
+    <div class="inboxcol"></div>
+    <div class="colline" style="left:25%"></div>
+    <div class="colline" style="left:50%"></div>
+    <div class="colline" style="left:75%"></div>
     <div class="colhead" style="left:0">TITI</div>
-    <div class="colhead" style="left:33.333%">NON</div>
-    <div class="colhead" style="left:66.666%">MILL</div>
+    <div class="colhead" style="left:25%">NON</div>
+    <div class="colhead" style="left:50%">MILL</div>
+    <div class="colhead" style="left:75%">📥 อื่นๆ</div>
     <div class="divider" id="div1"><span class="pill">⇕</span></div>
     <div class="divider" id="div2"><span class="pill">⇕</span></div>
   </div>
@@ -171,6 +178,7 @@
     <div class="opt" data-v="0">TITI</div>
     <div class="opt sel" data-v="1">NON</div>
     <div class="opt" data-v="2">MILL</div>
+    <div class="opt" data-v="3">📥 อื่นๆ</div>
   </div>
   <div class="opt-row" id="urgRow">
     <div class="opt r" data-v="red">🔥 ด่วนมากๆ</div>
@@ -189,9 +197,21 @@ const KEY='june27_today_v1';
 let state=load();
 function load(){
   const raw=store.getItem(KEY);
-  if(raw){try{return JSON.parse(raw)}catch(e){}}
-  return {div1:30, div2:60, h:1200, cards:[
-    {id:'c1', title:'ตัวอย่าง: ตามใบเสนอราคาลูกค้า', who:1, x:34.5, y:8, done:false},
+  if(raw){try{
+    const s=JSON.parse(raw);
+    // migrate จากบอร์ด 3 คอลัมน์ → 4 คอลัมน์ (คงคอลัมน์เดิมของทุกการ์ด)
+    if(!s.cols||s.cols<4){
+      (s.cards||[]).forEach(c=>{
+        const oldCol=Math.min(2,Math.max(0,Math.round(c.x/33.333)));
+        const rel=(c.x-oldCol*33.333)/33.333;
+        c.x=Math.min(Math.max(oldCol*25+rel*25,.5),74.5);
+      });
+      s.cols=4;
+    }
+    return s;
+  }catch(e){}}
+  return {div1:30, div2:60, h:1200, cols:4, cards:[
+    {id:'c1', title:'ตัวอย่าง: ตามใบเสนอราคาลูกค้า', who:1, x:26, y:8, done:false},
   ]};
 }
 function save(){store.setItem(KEY,JSON.stringify(state))}
@@ -264,7 +284,7 @@ function attachDrag(el,c){
     const move=ev=>{
       const dx=(ev.clientX-startX)/r.width*100, dy=(ev.clientY-startY)/r.height*100;
       if(Math.abs(ev.clientX-startX)+Math.abs(ev.clientY-startY)>6){el._moved=true; el.classList.add('dragging')}
-      c.x=Math.min(Math.max(ox+dx,.5),66.5);
+      c.x=Math.min(Math.max(ox+dx,.5),74.5);
       c.y=Math.min(Math.max(oy+dy,3.2),96);
       el.style.left=c.x+'%'; el.style.top=c.y+'%';
       el.style.borderLeftColor=URG_COLOR[urgencyOf(c.y)];
@@ -307,7 +327,7 @@ let selWho=1, selUrg='yellow', editingId=null;
 function setSel(row,val){
   $(row).querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel', String(x.dataset.v)===String(val)));
 }
-function colOf(x){return Math.min(2,Math.max(0,Math.floor((x+16.6)/33.333)))}
+function colOf(x){return Math.min(3,Math.max(0,Math.floor((x+12.5)/25)))}
 function openEdit(c){
   editingId=c.id;
   $('fTitle').value=c.title;
@@ -336,7 +356,7 @@ $('sheetBg').onclick=()=>{$('sheet').classList.remove('open');$('sheetBg').class
 function zoneSpawn(){
   const zoneTop = selUrg==='red'?4:(selUrg==='yellow'?state.div1+2:state.div2+2);
   const inZone=state.cards.filter(c=>urgencyOf(c.y)===selUrg && colOf(c.x)===selWho).length;
-  return {x:selWho*33.333+1.2, y:Math.min(zoneTop+inZone*6,95)};
+  return {x:selWho*25+0.9, y:Math.min(zoneTop+inZone*6,95)};
 }
 $('fSave').onclick=()=>{
   const t=$('fTitle').value.trim();
