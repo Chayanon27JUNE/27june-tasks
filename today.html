@@ -34,6 +34,14 @@
     position:relative; height:1200px; margin:0 6px 110px;
     border:1px solid var(--line); border-radius:12px; overflow:hidden; touch-action:pan-y;
   }
+  .sizer{
+    position:fixed; left:14px; bottom:18px; z-index:50; display:flex; gap:8px;
+  }
+  .sizer button{
+    border:1px solid var(--line); background:var(--card); color:var(--ink);
+    border-radius:999px; font-size:13px; padding:9px 14px; cursor:pointer; font-family:inherit;
+    box-shadow:0 3px 10px rgba(0,0,0,.35);
+  }
   .zone{position:absolute; left:0; right:0; pointer-events:none}
   .zone.red{background:var(--red); border-bottom:2px solid var(--red-line)}
   .zone.yellow{background:var(--yellow); border-bottom:2px solid var(--yellow-line)}
@@ -150,6 +158,10 @@
   </div>
 </div>
 
+<div class="sizer">
+  <button id="growBtn">⬇ ขยายบอร์ด</button>
+  <button id="shrinkBtn">⬆ ย่อ</button>
+</div>
 <button class="fab" id="fab">+</button>
 <div class="sheet-bg" id="sheetBg"></div>
 <div class="sheet" id="sheet">
@@ -178,7 +190,7 @@ let state=load();
 function load(){
   const raw=store.getItem(KEY);
   if(raw){try{return JSON.parse(raw)}catch(e){}}
-  return {div1:30, div2:60, cards:[
+  return {div1:30, div2:60, h:1200, cards:[
     {id:'c1', title:'ตัวอย่าง: ตามใบเสนอราคาลูกค้า', who:1, x:34.5, y:8, done:false},
   ]};
 }
@@ -191,6 +203,8 @@ $('sub').textContent=new Date().toLocaleDateString('th-TH',{weekday:'long',day:'
 
 // ---------- zones ----------
 function layoutZones(){
+  if(!state.h) state.h=1200;
+  board.style.height=state.h+'px';
   const d1=state.div1, d2=state.div2;
   $('zRed').style.top='0'; $('zRed').style.height=d1+'%';
   $('zYellow').style.top=d1+'%'; $('zYellow').style.height=(d2-d1)+'%';
@@ -344,6 +358,15 @@ $('fSave').onclick=()=>{
   save(); $('fTitle').value='';
   $('sheet').classList.remove('open'); $('sheetBg').classList.remove('open');
   render();
+};
+
+// ---------- board height ----------
+$('growBtn').onclick=()=>{
+  state.h=Math.min((state.h||1200)+300,5000); save(); layoutZones();
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+};
+$('shrinkBtn').onclick=()=>{
+  state.h=Math.max((state.h||1200)-300,800); save(); layoutZones();
 };
 
 render();
